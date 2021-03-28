@@ -1,18 +1,71 @@
 import csv
+import os
 
-csv_file = open("D:\\Alireza\\My documents\\ts_131_102_conformance\\metrics\\EFs_Under_USMI_ADF.csv")
-csv_reader = csv.reader(csv_file, delimiter=",")
 
-header = []
-file_detail = []
-line_counter = 0
+# defining the dictionary which will indiate index of the attributes in an specific csv file
+Attribute_Index = {}
 
-for row in csv_reader:
-    if(line_counter == 0):
-        header = row
-    else:
-        file_detail = row
-    line_counter += 1
-    
-print(header)
-print(file_detail)
+# defining the default folder to read metrics from it
+Metrics_Folder = "metrics"
+
+# a list to store metric file addresses
+Metric_Files = []
+
+# defining the keys which should be used in the metric.csv file
+class Metric_Keys:
+    File_Name = "File Name"
+    File_ID = "File ID"
+    Structure = "Structure"
+    Record_Size = "Record Size"
+    Record_Size_Co = "Record Size Co"
+    Record_Num = "Record Num"
+    Transparent_File_Size = "Transparent File Size"
+    Transparent_File_Size_Co = "Transparent File Size Co"
+    Read = "Read"
+    Update = "Update"
+    Deactivate = "Deactivate"
+    Activate = "Activate"
+    Increase = "Increase"
+    SFI = "SFI"
+
+
+def set_the_map_indexes(header_list):
+    keys_name = dir(Metric_Keys)
+    for key in keys_name:
+        if not key.startswith('_'):
+            temp = getattr(Metric_Keys, key)
+            index = -1
+            for i in range(0, len(header_list)):
+                if header_list[i] == temp:
+                    index = i
+                    break
+            Attribute_Index[temp] = index
+
+
+def get_metric_files():
+    files = os.listdir(Metrics_Folder)
+    for file in files:
+        if file.endswith(".csv"):
+            Metric_Files.append(Metrics_Folder + "\\" + file)
+
+
+def main():
+    get_metric_files()
+
+    # listing the metric files
+    print("metric files are as below")
+    print("----------------------------------------")
+    for i in Metric_Files:
+        print(i)
+    print("----------------------------------------")
+
+    for Metric in Metric_Files:
+        # getting header of the csv file
+        csv_file = open(Metric)
+        csv_reader = csv.reader(csv_file, delimiter=",")
+        set_the_map_indexes(csv_reader.__next__())
+        print(Attribute_Index)
+
+
+if __name__ == "__main__":
+    main()
