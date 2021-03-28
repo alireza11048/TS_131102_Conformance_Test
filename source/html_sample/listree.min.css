@@ -1,0 +1,19 @@
+.listree-submenu-heading{cursor:pointer; margin-top: 2px; margin-bottom: 2px;}
+
+.succeed{background-color: Chartreuse;}
+
+.failed{background-color: red;}
+
+.failed2{color: red;}
+
+.Neutral{background-color: Azure;}
+
+ul.listree{list-style:none}
+
+ul.listree-submenu-items{list-style:none;border-left:1px  black;white-space:nowrap;margin-right:4px;padding-left:20px}
+
+div.listree-submenu-heading.collapsed:before{content:"+";margin-right:4px}
+
+div.listree-submenu-heading.expanded:before{content:"-";margin-right:4px}.scrollable-menu{height:auto;max-width:800px;overflow-y:hidden}
+
+
