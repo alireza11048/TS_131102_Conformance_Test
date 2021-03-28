@@ -8,7 +8,7 @@ from enum import Enum
 Attribute_Index = {}
 
 # defining the default folder to read metrics from it
-Metrics_Folder = "/home/firoozian/GitProj/simLAB/custom_util/TS_131102_conformance/TS_131102_Conformance_Test/scripts/metrics"
+Metrics_Folder = "./metrics"
 
 # a list to store metric file addresses
 Metric_Files = []
@@ -76,7 +76,7 @@ def main():
         print(Attribute_Index)
 
     html = HtmlCreator("IRMCI")
-    html.terminate(TestResult.failed, "all passed", "/home/firoozian/GitProj/simLAB/custom_util/TS_131102_conformance/TS_131102_Conformance_Test/scripts/sample/res.html")
+    html.terminate(TestResult.failed, "all passed", "./sample/res.html")
 
 
 if __name__ == "__main__":
