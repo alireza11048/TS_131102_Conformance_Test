@@ -1,5 +1,7 @@
 import csv
 import os
+from html_creator import *
+from enum import Enum
 
 
 # defining the dictionary which will indiate index of the attributes in an specific csv file
@@ -11,8 +13,9 @@ Metrics_Folder = "metrics"
 # a list to store metric file addresses
 Metric_Files = []
 
+
 # defining the keys which should be used in the metric.csv file
-class Metric_Keys:
+class MetricKeys:
     File_Name = "File Name"
     File_ID = "File ID"
     Structure = "Structure"
@@ -29,11 +32,17 @@ class Metric_Keys:
     SFI = "SFI"
 
 
+class EFStructure(Enum):
+    Transparent = 1
+    LinearFixed = 2
+    Cyclic = 3
+
+
 def set_the_map_indexes(header_list):
-    keys_name = dir(Metric_Keys)
+    keys_name = dir(MetricKeys)
     for key in keys_name:
         if not key.startswith('_'):
-            temp = getattr(Metric_Keys, key)
+            temp = getattr(MetricKeys, key)
             index = -1
             for i in range(0, len(header_list)):
                 if header_list[i] == temp:
@@ -65,6 +74,9 @@ def main():
         csv_reader = csv.reader(csv_file, delimiter=",")
         set_the_map_indexes(csv_reader.__next__())
         print(Attribute_Index)
+
+    html = HtmlCreator("IRMCI")
+    html.terminate(TestResult.failed, "all passed", "D:\\Alireza\\My documents\\ts_131_102_conformance\\scripts\\sample\\res.html")
 
 
 if __name__ == "__main__":
