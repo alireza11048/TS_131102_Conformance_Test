@@ -8,7 +8,7 @@ from enum import Enum
 Attribute_Index = {}
 
 # defining the default folder to read metrics from it
-Metrics_Folder = "metrics"
+Metrics_Folder = "/home/firoozian/GitProj/simLAB/custom_util/TS_131102_conformance/TS_131102_Conformance_Test/scripts/metrics"
 
 # a list to store metric file addresses
 Metric_Files = []
@@ -55,7 +55,7 @@ def get_metric_files():
     files = os.listdir(Metrics_Folder)
     for file in files:
         if file.endswith(".csv"):
-            Metric_Files.append(Metrics_Folder + "\\" + file)
+            Metric_Files.append(Metrics_Folder + "/" + file)
 
 
 def main():
@@ -72,12 +72,14 @@ def main():
         # getting header of the csv file
         csv_file = open(Metric)
         csv_reader = csv.reader(csv_file, delimiter=",")
-        set_the_map_indexes(csv_reader.__next__())
+        set_the_map_indexes(csv_reader.next())
         print(Attribute_Index)
 
     html = HtmlCreator("IRMCI")
-    html.terminate(TestResult.failed, "all passed", "D:\\Alireza\\My documents\\ts_131_102_conformance\\scripts\\sample\\res.html")
+    html.terminate(TestResult.failed, "all passed", "/home/firoozian/GitProj/simLAB/custom_util/TS_131102_conformance/TS_131102_Conformance_Test/scripts/sample/res.html")
 
 
 if __name__ == "__main__":
     main()
+    #print(os.getcwd())
+

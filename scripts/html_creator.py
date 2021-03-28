@@ -10,8 +10,8 @@ class TestResult(Enum):
 class HtmlCreator:
     htmlcode = ""
     htmlmiddle = ""
-    css_base_address = "htmlfiles\\listree.min.css"
-    jvc_base_address = "htmlfiles\\listree.umd.min.js"
+    css_base_address = "./htmlfiles/listree.min.css"
+    jvc_base_address = "./htmlfiles/listree.umd.min.js"
 
     def __init__(self, name):
         self.htmlcode = "" \
@@ -58,9 +58,9 @@ class HtmlCreator:
         f.write(self.htmlcode)
         f.close()
 
-        res = address.split("\\")
+        res = address.split("/")
         res = res[0:len(res) - 1]
-        target = "\\".join(res)
+        target = "/".join(res)
 
         shutil.copy2(self.css_base_address, target)
         shutil.copy2(self.jvc_base_address, target)
