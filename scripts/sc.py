@@ -1,10 +1,27 @@
 import csv
 import os
+import sys
 from html_creator import *
 from enum import Enum
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../..'))
 
-# defining the dictionary which will indiate index of the attributes in an specific csv file
+# simlab related imports
+from sim import sim_card
+from sim import sim_router
+from util import types
+from sim import sim_shell
+from sim import sim_reader
+from optparse import OptionParser
+from prettytable import PrettyTable
+
+# file structure identifiers
+C_FILE_STRUCTURE_TRANSPARENT = 0
+C_FILE_STRUCTURE_LINEAR_FIXED = 1
+C_FILE_STRUCTURE_CYCLIC = 3
+C_FILE_STRUCTURE_UNKNOWN = 4
+
+# defining the dictionary which will indicate index of the attributes in an specific csv file
 Attribute_Index = {}
 
 # defining the default folder to read metrics from it
@@ -58,6 +75,58 @@ def get_metric_files():
             Metric_Files.append(Metrics_Folder + "/" + file)
 
 
+def find_df_root_address(address, shell):
+    add = address.split("/")
+    df_name = add[len(add) - 1]
+
+    # removing the csv from end of the file
+    if df_name.endswith(".csv"):
+        df_name = df_name[:-4]
+
+    # getting the df address
+    return shell.getAbsolutePath(df_name)
+
+
+def check_file_exists(shell, path):
+    sw1, sw2, data = shell.simCtrl.selectFileByPath(path)
+    if sw1 == 0x90 and sw2 == 0x00:
+        return True
+    else:
+        return False
+
+
+def rule0_file_existence(shell, html, path):
+    if check_file_exists(shell, path):
+        return True, HtmlMessages.rule0_file_size_succeed_message
+    else:
+        return False, HtmlMessages.rule0_file_size_failed_message
+
+
+def analyze_metric_file(metric, shell, html):
+    # getting header of the csv file
+    csv_file = open(metric)
+    csv_reader = csv.reader(csv_file, delimiter=",")
+
+    # finding index of different attribute in the metric file
+    set_the_map_indexes(csv_reader.next())
+
+    # printing index of attributes in the metric file
+    print(Attribute_Index)
+
+    # getting  the address of the root DF, according to the name of the metric file
+    root_address = find_df_root_address(metric, shell)
+
+    # moving in the metric file
+    for ef in csv_reader:
+        tmp = root_address + "/" + ef[Attribute_Index[MetricKeys.File_ID]]
+        rule0_res = rule0_file_existence(shell, html, tmp)
+        html.init_list_item(ef[Attribute_Index[MetricKeys.File_Name]] + ", " + tmp.replace("/", " | "), rule0_res[0])
+        html.addtohtml(rule0_res[1])
+        html.terminate_list_item()
+
+    print("root address for the " + metric + " file is " + root_address)
+
+
 def main():
     get_metric_files()
 
@@ -68,18 +137,33 @@ def main():
         print(i)
     print("----------------------------------------")
 
-    for Metric in Metric_Files:
-        # getting header of the csv file
-        csv_file = open(Metric)
-        csv_reader = csv.reader(csv_file, delimiter=",")
-        set_the_map_indexes(csv_reader.next())
-        print(Attribute_Index)
-
+    # initializing the report output html
     html = HtmlCreator("IRMCI")
+
+    # initializing the simLab utils
+    my_sim = sim_card.SimCard(mode=sim_reader.MODE_PYSCARD)
+    my_sim.removeAllReaders()
+    my_sim.connect(0)
+    my_router = sim_router.SimRouter(cards=[my_sim], type=types.TYPE_USIM, mode=sim_router.SIMTRACE_OFFLINE)
+    my_router.run(mode=sim_router.ROUTER_MODE_DISABLED)
+    my_shell = my_router.shell
+
+    # initializing the html output
+    html.init_html_tree()
+
+    for Metric in Metric_Files:
+        analyze_metric_file(Metric, my_shell, html)
+
+    # terminating the html list tree
+    html.terminate_html_tree()
+
+    # disposing the resources
+    my_sim.disconnect()
+    my_sim.stop()
+
     html.terminate(TestResult.failed, "all passed", "./sample/res.html")
 
 
 if __name__ == "__main__":
     main()
-    #print(os.getcwd())
-
+    # print(os.getcwd())
