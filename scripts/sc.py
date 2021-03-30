@@ -53,6 +53,7 @@ class EFStructure(Enum):
     Transparent = 1
     LinearFixed = 2
     Cyclic = 3
+    Unknown = 4
 
 
 def set_the_map_indexes(header_list):
@@ -102,6 +103,38 @@ def rule0_file_existence(shell, html, path):
         return False, HtmlMessages.rule0_file_size_failed_message
 
 
+def translate_ef_structure(structure):
+    structure = structure.upper()
+    if structure == "T" or structure == "TRANSPARENT":
+        return C_FILE_STRUCTURE_TRANSPARENT, "Transparent"
+    elif structure == "C" or structure == "CYCLIC":
+        return C_FILE_STRUCTURE_CYCLIC, "Cyclic"
+    elif structure == "L" or structure == "LINEAR" or structure == "LINEAR_FIXED" or structure == "FIXED":
+        return C_FILE_STRUCTURE_LINEAR_FIXED, "Linear Fixed"
+    else:
+        return C_FILE_STRUCTURE_UNKNOWN, "Unknown"
+
+
+def rule1_ef_structure_check(shell, html, path, expected_structure):
+    structure = translate_ef_structure(expected_structure)
+
+    structure_in_string = {C_FILE_STRUCTURE_TRANSPARENT: "Transparent",
+                           C_FILE_STRUCTURE_CYCLIC: "Cyclic",
+                           C_FILE_STRUCTURE_LINEAR_FIXED: "Linear Fixed",
+                           C_FILE_STRUCTURE_UNKNOWN: "Unknown"}
+
+    # getting the structure of the file
+    sw1, sw2, data = shell.simCtrl.selectFileByPath(path)
+    res = shell.simCtrl.getFileStructure(data)
+
+    if res == structure[0]:
+        return True, HtmlMessages.rule1_file_structure_succeed_message(
+            structure_in_string[structure[0]] + " as expected")
+    else:
+        return False, HtmlMessages.rule1_file_structure_failed_message(
+            "expected " + structure_in_string[structure[0]] + " got " + structure_in_string[res])
+
+
 def analyze_metric_file(metric, shell, html):
     # getting header of the csv file
     csv_file = open(metric)
@@ -119,9 +152,17 @@ def analyze_metric_file(metric, shell, html):
     # moving in the metric file
     for ef in csv_reader:
         tmp = root_address + "/" + ef[Attribute_Index[MetricKeys.File_ID]]
+
         rule0_res = rule0_file_existence(shell, html, tmp)
+
+        rule1_res = ()
+        if rule0_res[0]:
+            res = rule1_ef_structure_check(shell, html, tmp, ef[Attribute_Index[MetricKeys.Structure]])
+            rule1_res += res
+
         html.init_list_item(ef[Attribute_Index[MetricKeys.File_Name]] + ", " + tmp.replace("/", " | "), rule0_res[0])
         html.addtohtml(rule0_res[1])
+        html.addtohtml(rule1_res[1])
         html.terminate_list_item()
 
     print("root address for the " + metric + " file is " + root_address)

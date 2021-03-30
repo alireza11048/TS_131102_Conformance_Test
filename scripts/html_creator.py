@@ -8,6 +8,9 @@ class TestResult(Enum):
 
 
 class HtmlMessages():
+    def __init__(self):
+        pass
+
     rule0_file_size_failed_message = "" \
                                      "<!-- File existence -->" \
                                      "<li>" \
@@ -26,6 +29,27 @@ class HtmlMessages():
                                       "</ul> " \
                                       "</li>"
 
+    @staticmethod
+    def rule1_file_structure_succeed_message(message):
+        return "" \
+              "<!-- File structure -->" \
+              "<li>" \
+              "<div class=\"listree-submenu-heading succeed\"> File structure </div>" \
+              "<ul class=\"listree-submenu-items\"> " \
+              + message + \
+              "</ul> " \
+              "</li>"
+
+    @staticmethod
+    def rule1_file_structure_failed_message(message):
+        return "" \
+              "<!-- File structure -->" \
+              "<li>" \
+              "<div class=\"listree-submenu-heading failed\"> File structure </div>" \
+              "<ul class=\"listree-submenu-items\"> " \
+              + message + \
+              "</ul> " \
+              "</li>"
 
 class HtmlCreator:
     htmlcode = ""
