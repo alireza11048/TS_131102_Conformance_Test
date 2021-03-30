@@ -56,6 +56,17 @@ class EFStructure(Enum):
     Unknown = 4
 
 
+class ExpectedAccessCondition:
+    read_condition = ()
+    update_condition = ()
+    increase_condition = ()
+    activate_condition = ()
+    deactivate_condition = ()
+
+    def __init__(self):
+        pass
+
+
 def set_the_map_indexes(header_list):
     keys_name = dir(MetricKeys)
     for key in keys_name:
@@ -135,6 +146,87 @@ def rule1_ef_structure_check(shell, html, path, expected_structure):
             "expected " + structure_in_string[structure[0]] + " got " + structure_in_string[res])
 
 
+def translate_expecting_security_rule(read_condition,
+                                      update_condition,
+                                      increase_condition,
+                                      activate_condition,
+                                      deactivate_condition):
+    def get_security_condition_tuple(strings):
+        res = ()
+        for i in strings:
+            i = i.upper()
+            if i == "ALWAYS" or i == "ALW":
+                res += (types.AC_ALWAYS,)
+            if i == "PIN" or i == "PIN1":
+                res += (types.AC_CHV1,)
+            if i == "PIN2":
+                res += (types.AC_CHV2,)
+            if i == "ADM1":
+                res += (types.AC_ADM1,)
+            if i == "ADM2":
+                res += (types.AC_ADM2,)
+            if i == "ADM3":
+                res += (types.AC_ADM3,)
+            if i == "ADM4":
+                res += (types.AC_ADM4,)
+            if i == "ADM5":
+                res += (types.AC_ADM5,)
+            if i == "NEV" or i == "NEVER":
+                res += (types.AC_NEVER,)
+
+    result = ExpectedAccessCondition()
+
+    temp = read_condition.split("/")
+    result.read_condition += get_security_condition_tuple(temp)
+
+    temp = update_condition.split("/")
+    result.update_condition += get_security_condition_tuple(temp)
+
+    temp = increase_condition.split("/")
+    result.increase_condition += get_security_condition_tuple(temp)
+
+    temp = activate_condition.split("/")
+    result.activate_condition += get_security_condition_tuple(temp)
+
+    temp = deactivate_condition.split("/")
+    result.deactivate_condition += get_security_condition_tuple(temp)
+
+    return result
+
+
+def rule2_security_check(shell, html, path, expected_security_condition):
+    arrRecord, arrValue = shell.simCtrl.getArrRecordForFile(path)
+    res = (True, "")
+
+    tmp = False
+    conditions, condMode = types.getAccessConditions(arrValue, types.AM_EF_READ)
+    for condition in conditions:
+        for expected in expected_security_condition.read_condition:
+            if expected == condition:
+                tmp = True
+
+    tmp = False
+    conditions, condMode = types.getAccessConditions(arrValue, types.AM_EF_UPDATE)
+    for condition in conditions:
+        for expected in expected_security_condition.update_condition:
+            if expected == condition:
+                tmp = True
+
+    tmp = False
+    conditions, condMode = types.getAccessConditions(arrValue, types.AM_EF_DEACTIVATE)
+    for condition in conditions:
+        for expected in expected_security_condition.deactivate_condition:
+            if expected == condition:
+                tmp = True
+
+    tmp = False
+    conditions, condMode = types.getAccessConditions(arrValue, types.AM_EF_ACTIVATE)
+    for condition in conditions:
+        for expected in expected_security_condition.activate_condition:
+            if expected == condition:
+                tmp = True
+
+
 def analyze_metric_file(metric, shell, html):
     # getting header of the csv file
     csv_file = open(metric)
@@ -160,9 +252,22 @@ def analyze_metric_file(metric, shell, html):
             res = rule1_ef_structure_check(shell, html, tmp, ef[Attribute_Index[MetricKeys.Structure]])
             rule1_res += res
 
+        rule2_res = ()
+        if rule0_res[0]:
+            expected_security_condition = translate_expecting_security_rule(ef[Attribute_Index[MetricKeys.Read]],
+                                                                            ef[Attribute_Index[MetricKeys.Update]],
+                                                                            ef[Attribute_Index[MetricKeys.Increase]],
+                                                                            ef[Attribute_Index[MetricKeys.Activate]],
+                                                                            ef[Attribute_Index[MetricKeys.Deactivate]])
+
+            rule2_res += rule2_security_check(shell, html, tmp, expected_security_condition)
+
         html.init_list_item(ef[Attribute_Index[MetricKeys.File_Name]] + ", " + tmp.replace("/", " | "), rule0_res[0])
         html.addtohtml(rule0_res[1])
-        html.addtohtml(rule1_res[1])
+        if rule1_res is not ():
+            html.addtohtml(rule1_res[1])
+        if rule2_res is not ():
+            html.addtohtml(rule2_res[1])
         html.terminate_list_item()
 
     print("root address for the " + metric + " file is " + root_address)
