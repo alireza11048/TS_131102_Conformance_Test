@@ -80,7 +80,7 @@ class HtmlMessages():
                   "<li>" \
                   "<div class=\"listree-submenu-heading succeed\">" + header + "</div>" \
                                                                                "<ul class=\"listree-submenu-items\">" \
-                                                                               "\<p>" + message + "</p>" \
+                                                                               "<p>" + message + "</p>" \
                                                                                                   "</ul>" \
                                                                                                   "</li>"
         else:
@@ -88,7 +88,7 @@ class HtmlMessages():
                   "<li>" \
                   "<div class=\"listree-submenu-heading failed\">" + header + "</div>" \
                                                                               "<ul class=\"listree-submenu-items\">" \
-                                                                              "\<p>" + message + "</p>" \
+                                                                              "<p>" + message + "</p>" \
                                                                                                  "</ul>" \
                                                                                                  "</li>"
         return out
