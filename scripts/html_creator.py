@@ -32,26 +32,67 @@ class HtmlMessages():
     @staticmethod
     def rule1_file_structure_succeed_message(message):
         return "" \
-              "<!-- File structure -->" \
-              "<li>" \
-              "<div class=\"listree-submenu-heading succeed\"> File structure </div>" \
-              "<ul class=\"listree-submenu-items\"> " \
-              + message + \
-              "</ul> " \
-              "</li>"
+               "<!-- File structure -->" \
+               "<li>" \
+               "<div class=\"listree-submenu-heading succeed\"> File structure </div>" \
+               "<ul class=\"listree-submenu-items\"> " \
+               + message + \
+               "</ul> " \
+               "</li>"
 
     @staticmethod
     def rule1_file_structure_failed_message(message):
         return "" \
-              "<!-- File structure -->" \
-              "<li>" \
-              "<div class=\"listree-submenu-heading failed\"> File structure </div>" \
-              "<ul class=\"listree-submenu-items\"> " \
-              + message + \
-              "</ul> " \
-              "</li>"
+               "<!-- File structure -->" \
+               "<li>" \
+               "<div class=\"listree-submenu-heading failed\"> File structure </div>" \
+               "<ul class=\"listree-submenu-items\"> " \
+               + message + \
+               "</ul> " \
+               "</li>"
 
-    
+    @staticmethod
+    def rule2_security_check_add_base_succeed():
+        return "" \
+               "<li>" \
+               "<div class=\"listree-submenu-heading succeed\"> Security </div>" \
+               "<ul class=\"listree-submenu-items\">"
+
+    @staticmethod
+    def rule2_security_check_add_base_failed():
+        return "" \
+               "<li>" \
+               "<div class=\"listree-submenu-heading failed\"> Security </div>" \
+               "<ul class=\"listree-submenu-items\">"
+
+    @staticmethod
+    def rule2_security_check_terminate():
+        return "" \
+               "</ul>" \
+               "</li>"
+
+    @staticmethod
+    def rule2_security_check_add_sub_section(res, header, message):
+        out = ""
+        if res is True:
+            out = "" \
+                   "<li>" \
+                   "<div class=\"listree-submenu-heading succeed\">" + header + "</div>" \
+                                                                               "<ul class=\"listree-submenu-items\">" \
+                                                                               "\<p>" + message + "</p>" \
+                                                                                                  "</ul>" \
+                                                                                                  "</li>"
+        else:
+            out = "" \
+                   "<li>" \
+                   "<div class=\"listree-submenu-heading failed\">" + header + "</div>" \
+                                                                               "<ul class=\"listree-submenu-items\">" \
+                                                                               "\<p>" + message + "</p>" \
+                                                                                                  "</ul>" \
+                                                                                                  "</li>"
+        print("out is " + out)
+        return out
+
 
 class HtmlCreator:
     htmlcode = ""

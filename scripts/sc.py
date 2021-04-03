@@ -146,11 +146,11 @@ def rule1_ef_structure_check(shell, html, path, expected_structure):
             "expected " + structure_in_string[structure[0]] + " got " + structure_in_string[res])
 
 
-def translate_expecting_security_rule(read_condition,
-                                      update_condition,
-                                      increase_condition,
-                                      activate_condition,
-                                      deactivate_condition):
+def translate_expected_security_rule(read_condition,
+                                     update_condition,
+                                     increase_condition,
+                                     activate_condition,
+                                     deactivate_condition):
     def get_security_condition_tuple(strings):
         res = ()
         for i in strings:
@@ -161,7 +161,7 @@ def translate_expecting_security_rule(read_condition,
                 res += (types.AC_CHV1,)
             if i == "PIN2":
                 res += (types.AC_CHV2,)
-            if i == "ADM1":
+            if i == "ADM1" or i == "ADM":
                 res += (types.AC_ADM1,)
             if i == "ADM2":
                 res += (types.AC_ADM2,)
@@ -173,10 +173,13 @@ def translate_expecting_security_rule(read_condition,
                 res += (types.AC_ADM5,)
             if i == "NEV" or i == "NEVER":
                 res += (types.AC_NEVER,)
+        return res
 
     result = ExpectedAccessCondition()
 
+    print(read_condition)
     temp = read_condition.split("/")
+    print(temp)
     result.read_condition += get_security_condition_tuple(temp)
 
     temp = update_condition.split("/")
@@ -194,38 +197,79 @@ def translate_expecting_security_rule(read_condition,
     return result
 
 
-def rule2_security_check(shell, html, path, expected_security_condition):
+def rule2_security_check(shell, html, path, expected_security_condition, ef):
     arrRecord, arrValue = shell.simCtrl.getArrRecordForFile(path)
-    res = (True, "")
+    result = True
+    output = ""
 
-    tmp = False
+
+    read_res = False
     conditions, condMode = types.getAccessConditions(arrValue, types.AM_EF_READ)
     for condition in conditions:
         for expected in expected_security_condition.read_condition:
             if expected == condition:
-                tmp = True
+                read_res = True
 
-    tmp = False
+    update_res = False
     conditions, condMode = types.getAccessConditions(arrValue, types.AM_EF_UPDATE)
     for condition in conditions:
         for expected in expected_security_condition.update_condition:
             if expected == condition:
-                tmp = True
+                update_res = True
 
-    tmp = False
+    deactivate_res = False
     conditions, condMode = types.getAccessConditions(arrValue, types.AM_EF_DEACTIVATE)
     for condition in conditions:
         for expected in expected_security_condition.deactivate_condition:
             if expected == condition:
-                tmp = True
+                deactivate_res = True
 
-    tmp = False
+    activate_res = False
     conditions, condMode = types.getAccessConditions(arrValue, types.AM_EF_ACTIVATE)
     for condition in conditions:
         for expected in expected_security_condition.activate_condition:
             if expected == condition:
-                tmp = True
+                activate_res = True
 
+    if read_res is False or update_res is False or deactivate_res is False or activate_res is False:
+        result = False
+
+    if result is True:
+        output = HtmlMessages.rule2_security_check_add_base_succeed()
+    else:
+        output = HtmlMessages.rule2_security_check_add_base_failed()
+
+    if read_res:
+        output += HtmlMessages.rule2_security_check_add_sub_section(read_res, "Read", ef[
+            Attribute_Index[MetricKeys.Read]] + " as expected")
+    else:
+        output += HtmlMessages.rule2_security_check_add_sub_section(read_res, "Read", "expected " + ef[
+            Attribute_Index[MetricKeys.Read]])
+
+    if update_res:
+        output += HtmlMessages.rule2_security_check_add_sub_section(update_res, "Update", ef[
+            Attribute_Index[MetricKeys.Update]] + " as expected")
+    else:
+        output += HtmlMessages.rule2_security_check_add_sub_section(update_res, "Update", "expected " + ef[
+            Attribute_Index[MetricKeys.Update]])
+
+    if deactivate_res:
+        output += HtmlMessages.rule2_security_check_add_sub_section(deactivate_res, "Deactivate", ef[
+            Attribute_Index[MetricKeys.Deactivate]] + " as expected")
+    else:
+        output += HtmlMessages.rule2_security_check_add_sub_section(deactivate_res, "Deactivate", "expected " + ef[
+            Attribute_Index[MetricKeys.Deactivate]])
+
+    if activate_res:
+        output += HtmlMessages.rule2_security_check_add_sub_section(activate_res, "Activate", ef[
+            Attribute_Index[MetricKeys.Activate]] + " as expected")
+    else:
+        output += HtmlMessages.rule2_security_check_add_sub_section(activate_res, "Activate", "expected " + ef[
+            Attribute_Index[MetricKeys.Activate]])
+
+    output += HtmlMessages.rule2_security_check_terminate()
+
+    return(result, output)
 
 def analyze_metric_file(metric, shell, html):
     # getting header of the csv file
@@ -254,13 +298,13 @@ def analyze_metric_file(metric, shell, html):
 
         rule2_res = ()
         if rule0_res[0]:
-            expected_security_condition = translate_expecting_security_rule(ef[Attribute_Index[MetricKeys.Read]],
-                                                                            ef[Attribute_Index[MetricKeys.Update]],
-                                                                            ef[Attribute_Index[MetricKeys.Increase]],
-                                                                            ef[Attribute_Index[MetricKeys.Activate]],
-                                                                            ef[Attribute_Index[MetricKeys.Deactivate]])
+            expected_security_condition = translate_expected_security_rule(ef[Attribute_Index[MetricKeys.Read]],
+                                                                           ef[Attribute_Index[MetricKeys.Update]],
+                                                                           ef[Attribute_Index[MetricKeys.Increase]],
+                                                                           ef[Attribute_Index[MetricKeys.Activate]],
+                                                                           ef[Attribute_Index[MetricKeys.Deactivate]])
 
-            rule2_res += rule2_security_check(shell, html, tmp, expected_security_condition)
+            rule2_res += rule2_security_check(shell, html, tmp, expected_security_condition, ef)
 
         html.init_list_item(ef[Attribute_Index[MetricKeys.File_Name]] + ", " + tmp.replace("/", " | "), rule0_res[0])
         html.addtohtml(rule0_res[1])
@@ -268,6 +312,7 @@ def analyze_metric_file(metric, shell, html):
             html.addtohtml(rule1_res[1])
         if rule2_res is not ():
             html.addtohtml(rule2_res[1])
+            print(rule2_res[1])
         html.terminate_list_item()
 
     print("root address for the " + metric + " file is " + root_address)
