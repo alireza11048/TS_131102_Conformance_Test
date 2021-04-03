@@ -90,7 +90,6 @@ class HtmlMessages():
                                                                                "\<p>" + message + "</p>" \
                                                                                                   "</ul>" \
                                                                                                   "</li>"
-        print("out is " + out)
         return out
 
 
