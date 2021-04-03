@@ -2,11 +2,12 @@ from enum import Enum
 import shutil
 
 
+# enum to store test result
 class TestResult(Enum):
     failed = 1
-    succed = 2
+    succeed = 2
 
-
+# class which holds static html codes
 class HtmlMessages():
     def __init__(self):
         pass
@@ -76,23 +77,24 @@ class HtmlMessages():
         out = ""
         if res is True:
             out = "" \
-                   "<li>" \
-                   "<div class=\"listree-submenu-heading succeed\">" + header + "</div>" \
+                  "<li>" \
+                  "<div class=\"listree-submenu-heading succeed\">" + header + "</div>" \
                                                                                "<ul class=\"listree-submenu-items\">" \
                                                                                "\<p>" + message + "</p>" \
                                                                                                   "</ul>" \
                                                                                                   "</li>"
         else:
             out = "" \
-                   "<li>" \
-                   "<div class=\"listree-submenu-heading failed\">" + header + "</div>" \
-                                                                               "<ul class=\"listree-submenu-items\">" \
-                                                                               "\<p>" + message + "</p>" \
-                                                                                                  "</ul>" \
-                                                                                                  "</li>"
+                  "<li>" \
+                  "<div class=\"listree-submenu-heading failed\">" + header + "</div>" \
+                                                                              "<ul class=\"listree-submenu-items\">" \
+                                                                              "\<p>" + message + "</p>" \
+                                                                                                 "</ul>" \
+                                                                                                 "</li>"
         return out
 
 
+# class to build HTML output
 class HtmlCreator:
     htmlcode = ""
     htmlmiddle = ""
