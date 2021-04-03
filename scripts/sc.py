@@ -323,6 +323,10 @@ def rule2_security_check(shell, html, path, expected_security_condition, ef):
 
 # this function will check the
 def analyze_metric_file(metric, shell, html):
+    result_total = True
+    passed = 0
+    failed = 0
+
     # getting header of the csv file
     csv_file = open(metric)
     csv_reader = csv.reader(csv_file, delimiter=",")
@@ -338,6 +342,8 @@ def analyze_metric_file(metric, shell, html):
 
     # moving in the metric file
     for ef in csv_reader:
+        test_res = True
+
         # getting address of the EF file
         tmp = root_address + "/" + ef[Attribute_Index[MetricKeys.File_ID]]
 
@@ -370,8 +376,33 @@ def analyze_metric_file(metric, shell, html):
             html.addtohtml(rule2_res[1])
         html.terminate_list_item()
 
+        if rule0_res is not ():
+            if rule0_res[0] is False:
+                test_res = False
+
+        if rule1_res is not ():
+            if rule1_res[0] is False:
+                test_res = False
+
+        if rule2_res is not ():
+            if rule2_res[0] is False:
+                test_res = False
+
+        if test_res:
+            passed += 1
+        else:
+            failed += 1
+            result_total = False
+
+    return result_total, passed, failed
+
 
 def main():
+    parser = OptionParser()
+    parser.add_option("-o", "--operator", dest="operator",
+                      help="name of the sim-card operator")
+    (options, args) = parser.parse_args()
+
     # getting metric files
     get_metric_files()
 
@@ -383,7 +414,10 @@ def main():
     print("----------------------------------------")
 
     # initializing the report output html
-    html = HtmlCreator("IRMCI")
+    if (options.operator):
+        html = HtmlCreator(options.operator)
+    else:
+        html = HtmlCreator("UnKnown operator")
 
     # initializing the simLab utils
     my_sim = sim_card.SimCard(mode=sim_reader.MODE_PYSCARD)
@@ -396,9 +430,20 @@ def main():
     # initializing the html output
     html.init_html_tree()
 
+    # result of all test
+    tests_result = [True, 0, 0]
+
     # moving in the metric files
     for Metric in Metric_Files:
-        analyze_metric_file(Metric, my_shell, html)
+        res = analyze_metric_file(Metric, my_shell, html)
+
+        if res[0] is False:
+            tests_result[0] = False
+
+        tests_result[1] += res[1]
+        tests_result[2] += res[2]
+
+
 
     # terminating the html list tree
     html.terminate_html_tree()
@@ -408,7 +453,12 @@ def main():
     my_sim.stop()
 
     # terminating the html
-    html.terminate(TestResult.failed, "all passed", "./sample/res.html")
+    if tests_result[0]:
+        html.terminate(TestResult.succeed, str(tests_result[1]) + " passed, " + str(tests_result[2]) + " failed", "./output/res"
+                                                                                                        ".html")
+    else:
+        html.terminate(TestResult.failed,  str(tests_result[1]) + " passed, " + str(tests_result[2]) + " failed", "./output/res"
+                                                                                                        ".html")
 
 
 if __name__ == "__main__":

@@ -143,7 +143,7 @@ class HtmlCreator:
         if test_result == TestResult.failed:
             self.htmlcode += "<h3 class=\"failed2\"> failed </h3>"
         else:
-            self.htmlcode += "<h3 class=\"succeed\"> succeed </h3>"
+            self.htmlcode += "<h3 class=\"succeed2\"> succeed </h3>"
 
         self.htmlcode += "<p>" + report + "</p>"
 
